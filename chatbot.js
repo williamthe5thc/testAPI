@@ -5,30 +5,36 @@ document.getElementById("userInput").addEventListener("keypress", function(e) {
     }
 });
 
-const responses = {
-    "hello": "Hi there! How can I assist you today?",
-    "how are you?": "I'm just a bunch of code, but I'm here to help you!",
-    "bye": "Goodbye! Have a great day!",
-    "default": "Sorry, I didn't understand that. Can you please rephrase?"
-};
-
-function sendMessage() {
+async function sendMessage() {
     const userInput = document.getElementById("userInput").value;
     if (userInput.trim() === "") return;
 
     addMessage(userInput, "user");
     document.getElementById("userInput").value = "";
 
-    setTimeout(() => {
-        const botResponse = getBotResponse(userInput);
-        addMessage(botResponse, "bot");
-        scrollToBottom();
-    }, 500);
+    const botResponse = await getBotResponse(userInput);
+    addMessage(botResponse, "bot");
+    scrollToBottom();
 }
 
-function getBotResponse(input) {
-    input = input.toLowerCase();
-    return responses[input] || responses["default"];
+async function getBotResponse(userInput) {
+    const apiKey = '111111111111111111111111111111111111111111111111';  // Replace with your OpenAI API key
+
+    const response = await fetch('http://127.0.0.1:5000', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+            model: "gpt-4",  // or "gpt-3.5-turbo" if you prefer
+            messages: [{ role: "user", content: userInput }],
+            max_tokens: 150
+        })
+    });
+
+    const data = await response.json();
+    return data.choices[0].message.content;
 }
 
 function addMessage(text, sender) {
